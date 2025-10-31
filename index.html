@@ -18,7 +18,7 @@
       try {
         status.innerHTML = "1. Sending request to Rapyd...";
 
-        const response = await fetch("https://dashboard.rapyd.net/v1/merchants-portal/organization/api-keys", {
+        const response = await fetch("rapyd", {
           method: 'GET',
           credentials: 'include',
           headers: {
